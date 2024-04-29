@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Asv.Audio\Asv.Audio.csproj" />
+        <PackageReference Include="NAudio.Wasapi" Version="$(NAudioVersion)" />
+        
+    </ItemGroup>
+
+</Project>

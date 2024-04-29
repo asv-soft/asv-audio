@@ -5,6 +5,35 @@
         <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Update="Libs.resx">
+        <Generator>ResXFileCodeGenerator</Generator>
+        <LastGenOutput>Libs.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Libs.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>Libs.resx</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      
+        <PackageReference Include="System.Reactive" Version="$(ReactiveVersion)" />
+        <PackageReference Include="DynamicData" Version="$(DynamicDataVersion)" />
+        <PackageReference Include="NLog" Version="$(NLogVersion)" />
+        <PackageReference Include="Asv.Common" Version="$(AsvCommonVersion)" />
+        <PackageReference Include="Asv.IO" Version="$(AsvCommonVersion)" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Asv.Audio\Asv.Audio.csproj" />
+    </ItemGroup>
 
 </Project>
