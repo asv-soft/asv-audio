@@ -22,7 +22,7 @@
         <PackageTags>audio;opus;.net</PackageTags>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Simple library for working with audio sources in .NET with a reactive interface </Description>
-        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        
         <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
 
