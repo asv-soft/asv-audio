@@ -8,8 +8,13 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <PlatformTarget>x64</PlatformTarget>
+    </PropertyGroup>
+
     <ItemGroup>
        <ProjectReference Include="..\Asv.Audio.Codec.Opus\Asv.Audio.Codec.Opus.csproj" />
+       <ProjectReference Include="..\Asv.Audio.Source.Windows\Asv.Audio.Source.Windows.csproj" />
        <ProjectReference Include="..\Asv.Audio\Asv.Audio.csproj" />
        <PackageReference Include="NLog" Version="5.2.8" />
        <PackageReference Include="Spectre.Console" Version="0.46.0" />

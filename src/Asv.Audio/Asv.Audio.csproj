@@ -6,6 +6,10 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
     </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <PlatformTarget>AnyCPU</PlatformTarget>
+    </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="System.Reactive" Version="$(ReactiveVersion)" />
         <PackageReference Include="DynamicData" Version="$(DynamicDataVersion)" />

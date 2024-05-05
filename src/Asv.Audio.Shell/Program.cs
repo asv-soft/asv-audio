@@ -20,11 +20,14 @@ class Program
             Assembly.GetExecutingAssembly().PrintWelcomeToConsole();
             Console.InputEncoding = Encoding.UTF8;
             Console.OutputEncoding = Encoding.UTF8;
-            var app = new CommandApp<StartCommand>();
+            var app = new CommandApp();
+            
             app.Configure(config =>
             {
-                config.PropagateExceptions();
+                config.AddCommand<WindowsLoopCommand>(WindowsLoopCommand.Name);
+                
 #if DEBUG
+                config.PropagateExceptions();
                 config.ValidateExamples();
 #endif
             });

@@ -78,5 +78,15 @@ namespace Asv.Audio.Codec.Opus {
                 return ((byte[])(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] opus_win_x64 {
+            get {
+                object obj = ResourceManager.GetObject("opus-win-x64", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }

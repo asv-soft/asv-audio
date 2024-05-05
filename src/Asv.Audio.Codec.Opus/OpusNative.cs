@@ -5,32 +5,6 @@ namespace Asv.Audio.Codec.Opus;
 public static class OpusNative
 {
     
-    static OpusNative()
-    {
-        if (Environment.OSVersion.Platform == PlatformID.Unix)
-        {
-            CheckFile("libopus.so", Libs.opus_linux_armv7);    
-        }
-        else
-        {
-            if (Environment.Is64BitProcess)
-            {
-                CheckFile("opus.dll", Libs.opus_win_x32);    
-            }
-            else
-            {
-                CheckFile("opus.dll", Libs.opus_win_x32);    
-            }    
-        }
-    }
-    
-    private static void CheckFile(string path, byte[] data)
-    {
-        if (!File.Exists(path)) File.WriteAllBytes(path, data);
-    }
-    /*[DllImport("kernel32", CharSet = CharSet.Auto, SetLastError = true)]
-    private static extern bool SetDllDirectory(string path);*/
-    
     [DllImport("opus", CallingConvention = CallingConvention.Cdecl)]
     internal static extern IntPtr opus_encoder_create(int Fs, int channels, int application, out IntPtr error);
 
