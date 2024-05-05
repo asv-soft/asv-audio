@@ -6,6 +6,24 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+        <AssemblyVersion>$(ProductVersion)</AssemblyVersion>
+        <FileVersion>$(ProductVersion)</FileVersion>
+        <Version>$(ProductVersion)</Version>
+        <PackageVersion>$(ProductVersion)</PackageVersion>
+
+        <Authors>https://github.com/asv-soft</Authors>
+        <Company>https://github.com/asv-soft</Company>
+        <Copyright>https://github.com/asv-soft</Copyright>
+
+        <PackageProjectUrl>https://github.com/asv-soft/asv-mavlink</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/asv-soft/asv-audio</RepositoryUrl>
+
+        <PackageTags>audio;opus;.net</PackageTags>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Simple library for working with audio sources in .NET with a reactive interface </Description>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
 
     <ItemGroup>

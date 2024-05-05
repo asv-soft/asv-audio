@@ -22,8 +22,33 @@ internal class WindowsLoopCommand : Command<WindowsLoopCommand.Settings>
         
     }
 
+    public WindowsLoopCommand()
+    {
+        // format for raw audio
+        var format = new AudioFormat(48000,16,1);
+        // audio source for windows
+        IAudioSource src = new MmWindowsAudioSource();
+        // get first capture and render devices
+        using var rec = src.CreateFirstCaptureDevice(format) 
+                  ?? throw new Exception("Capture device not found");
+        using var play = src.CreateFirstRenderDevice(format) 
+                         ?? throw new Exception("Render device not found");;
+        // send audio from capture to render (loopback)
+        rec.Subscribe(play);
+        
+        // or encode/decode audio by opus codec
+        rec.OpusEncode(format)
+            // may be some processing here (e.g. send over network)
+            .OpusDecode(format)
+            .Subscribe(play);
+
+    }
+
     public override int Execute(CommandContext context, Settings settings)
     {
+        
+        
+        
         var waitForProcessShutdownStart = new ManualResetEventSlim();
         AppDomain.CurrentDomain.ProcessExit += (sender, e) =>
         {

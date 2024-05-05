@@ -1,4 +1,6 @@
+using System.Collections.Immutable;
 using DynamicData;
+using DynamicData.Binding;
 
 namespace Asv.Audio;
 
@@ -36,4 +38,36 @@ public interface IAudioSource
     IAudioCaptureDevice CreateCaptureDevice(string deviceId, AudioFormat format);
     IObservable<IChangeSet<IAudioDeviceInfo,string>> RenderDevices { get; }
     IAudioRenderDevice CreateRenderDevice(string deviceId, AudioFormat format);
+    
+    public ImmutableArray<IAudioDeviceInfo> GetAllCaptureDevices()
+    {
+        using var s1 = CaptureDevices.BindToObservableList(out var list).Subscribe();
+        var result = list.Items.ToImmutableArray();
+        list.Dispose();
+        return result;
+    }
+    
+    public IAudioCaptureDevice? CreateFirstCaptureDevice(AudioFormat format)
+    {
+        using var s1 = CaptureDevices.BindToObservableList(out var list).Subscribe();
+        var first = list.Items.FirstOrDefault();
+        list.Dispose();
+        return first == null ? null : CreateCaptureDevice(first.Id, format);
+    }
+    
+    public IAudioRenderDevice? CreateFirstRenderDevice(AudioFormat format)
+    {
+        using var s1 = RenderDevices.BindToObservableList(out var list).Subscribe();
+        var first = list.Items.FirstOrDefault();
+        list.Dispose();
+        return first == null ? null : CreateRenderDevice(first.Id, format);
+    }
+    
+    public ImmutableArray<IAudioDeviceInfo> GetAllRenderDevices()
+    {
+        using var s1 = RenderDevices.BindToObservableList(out var list).Subscribe();
+        var result = list.Items.ToImmutableArray();
+        list.Dispose();
+        return result;
+    }
 }
