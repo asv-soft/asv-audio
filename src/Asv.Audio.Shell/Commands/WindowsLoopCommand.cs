@@ -65,11 +65,16 @@ internal class WindowsLoopCommand : Command<WindowsLoopCommand.Settings>
         
         long rxCnt = 0;
         long rxOpus = 0;
+        long framesCount = 1;
         
         using var loopSub = captureDevice
             .Do(x=>rxCnt += x.Length)
-            .OpusEncode(format, OpusApplication.Voip, false, 960, 8000)
-            .Do(x=>rxOpus+=x.Length)
+            .OpusEncode(format, segmentFrames: 2880, codecBitrate:4000)
+            .Do(x=>
+            {
+                rxOpus += x.Length;
+                ++framesCount;
+            })
             .OpusDecode(format)
             .Subscribe(renderDevice);
         renderDevice.Start();
@@ -85,7 +90,9 @@ internal class WindowsLoopCommand : Command<WindowsLoopCommand.Settings>
                 .Label("[green bold underline]Rates[/]")
                 .CenterLabel()
                 .AddItem("RAW", Math.Ceiling(rxCounter.Calculate(rxCnt)), Color.Yellow)
-                .AddItem("OPUS", Math.Ceiling(rxOpusCounter.Calculate(rxOpus)), Color.Green);
+                .AddItem("OPUS", Math.Ceiling(rxOpusCounter.Calculate(rxOpus)), Color.Green)
+                .AddItem("AVG SIZE", Math.Ceiling((double)(rxOpus / framesCount)), Color.Green);
+            
             AnsiConsole.Write(chart);
             Task.Delay(1000).Wait();
         }
