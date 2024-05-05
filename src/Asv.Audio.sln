@@ -18,6 +18,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asv.Audio.Test", "Asv.Audio.Test\Asv.Audio.Test.csproj", "{CBF63B8C-D827-42D5-8895-AA7F5A7B121A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Codec", "Codec", "{2201E7E6-9321-4193-AA27-A54D4298721B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source", "Source", "{B2293F01-D6D2-445A-9CAE-FE2815164CCC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,5 +48,9 @@ Global
 		{CBF63B8C-D827-42D5-8895-AA7F5A7B121A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CBF63B8C-D827-42D5-8895-AA7F5A7B121A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CBF63B8C-D827-42D5-8895-AA7F5A7B121A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{676B0D92-0D03-4121-B104-D5C188549EC8} = {2201E7E6-9321-4193-AA27-A54D4298721B}
+		{AAEC7A27-C5D0-41F7-A267-B750F3474A20} = {B2293F01-D6D2-445A-9CAE-FE2815164CCC}
 	EndGlobalSection
 EndGlobal

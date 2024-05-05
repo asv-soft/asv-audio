@@ -2,9 +2,9 @@ namespace Asv.Audio;
 
 public static class AudioHelper
 {
-    public static IAudioCaptureSubject Chunking(this IAudioCaptureSubject src, int chunkByteSize,bool useArrayPool = true)
+    public static IObservable<ReadOnlyMemory<T>> Chunking<T>(this IObservable<ReadOnlyMemory<T>> src, int chunkByteSize,bool useArrayPool = true)
     {
-        return new ChunkingCaptureSubject(src,chunkByteSize,useArrayPool);
+        return   
     }
     
     

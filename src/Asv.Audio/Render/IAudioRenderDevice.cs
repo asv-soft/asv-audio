@@ -1,6 +1,6 @@
 namespace Asv.Audio;
 
-public interface IAudioRenderDevice:IAudioRenderSubject
+public interface IAudioRenderDevice:IObserver<ReadOnlyMemory<byte>>
 {
     void Start();
     void Stop();
