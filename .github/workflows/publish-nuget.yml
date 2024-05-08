@@ -1,0 +1,115 @@
+name: Build and Publish NuGet
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build_asv-audio:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
+      - name: Setup .NET for Asv.Audio
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '8.0.x'
+          
+      - name: Install dependencies
+        run: dotnet restore ./src
+        
+      - name: Build
+        run: dotnet build ./src/Asv.Audio.sln --configuration Release --no-restore
+        
+      - name: Run tests
+        run: dotnet test ./src/Asv.Audio.sln --no-restore --filter FullyQualifiedName~Asv.Audio.Test
+
+      - name: Set version variable
+        env:
+          TAG: ${{ github.ref_name }}
+        run: echo "VERSION=${TAG#v}" >> $GITHUB_ENV
+        
+      - name: Pack package
+        run: dotnet pack ./src/Asv.Audio/Asv.Audio.csproj -c Release /p:Version=${VERSION} --no-build -o .
+        
+      - name: List output files
+        run: ls -la
+        
+      - name: Push package to GitHub
+        run: dotnet nuget push Asv.Audio.${VERSION}.nupkg --api-key ${{ secrets.GIHUB_NUGET_AUTH_TOKEN }} --skip-duplicate --source "https://nuget.pkg.github.com/asv-soft/index.json"
+
+      - name: Push package to Nuget
+        run: dotnet nuget push Asv.Audio.${VERSION}.nupkg --api-key ${{ secrets.NUGET_AUTH_TOKEN }} --skip-duplicate --source https://api.nuget.org/v3/index.json
+          
+  build_asv-audio-codec-opus:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup .NET for Asv.Audio.Codec.Opus
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install dependencies
+        run: dotnet restore ./src
+
+      - name: Build
+        run: dotnet build ./src/Asv.Audio.sln --configuration Release --no-restore
+
+      - name: Set version variable
+        env:
+          TAG: ${{ github.ref_name }}
+        run: echo "VERSION=${TAG#v}" >> $GITHUB_ENV
+
+      - name: Pack package
+        run: dotnet pack ./src/Asv.Audio.Codec.Opus/Asv.Audio.Codec.Opus.csproj -c Release /p:Version=${VERSION} --no-build -o .
+        
+      - name: List output files
+        run: ls -la
+        
+      - name: Push package to GitHub
+        run: dotnet nuget push Asv.Audio.Codec.Opus.${VERSION}.nupkg --api-key ${{ secrets.GIHUB_NUGET_AUTH_TOKEN }} --skip-duplicate --source "https://nuget.pkg.github.com/asv-soft/index.json"
+
+      - name: Push package to Nuget
+        run: dotnet nuget push Asv.Audio.Codec.Opus.${VERSION}.nupkg --api-key ${{ secrets.NUGET_AUTH_TOKEN }} --skip-duplicate --source https://api.nuget.org/v3/index.json
+          
+  build_asv-audio-source-windows:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup .NET for Asv.Audio.Source.Windows
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install dependencies
+        run: dotnet restore ./src
+
+      - name: Build
+        run: dotnet build ./src/Asv.Audio.sln --configuration Release --no-restore
+
+      - name: Set version variable
+        env:
+          TAG: ${{ github.ref_name }}
+        run: echo "VERSION=${TAG#v}" >> $GITHUB_ENV
+
+      - name: Pack package
+        run: dotnet pack ./src/Asv.Audio.Source.Windows/Asv.Audio.Source.Windows.csproj -c Release /p:Version=${VERSION} --no-build -o .
+        
+      - name: List output files
+        run: ls -la
+        
+      - name: Push package to GitHub
+        run: dotnet nuget push Asv.Audio.Source.Windows.${VERSION}.nupkg --api-key ${{ secrets.GIHUB_NUGET_AUTH_TOKEN }} --skip-duplicate --source "https://nuget.pkg.github.com/asv-soft/index.json"
+
+      - name: Push package to Nuget
+        run: dotnet nuget push Asv.Audio.Source.Windows.${VERSION}.nupkg --api-key ${{ secrets.NUGET_AUTH_TOKEN }} --skip-duplicate --source https://api.nuget.org/v3/index.json
