@@ -28,9 +28,9 @@ public class MmWindowsAudioSource:DisposableOnceWithCancel, IAudioSource, IMMNot
     }
 
     public IObservable<IChangeSet<IAudioDeviceInfo, string>> CaptureDevices { get; } 
-    public IAudioCaptureDevice CreateCaptureDevice(string deviceId, AudioFormat format) => new MmAudioCaptureDevice(_enumerator.GetDevice(deviceId),format);
+    public IAudioCaptureDevice? CreateCaptureDevice(string deviceId, AudioFormat format) => new MmAudioCaptureDevice(_enumerator.GetDevice(deviceId),format);
     public IObservable<IChangeSet<IAudioDeviceInfo, string>> RenderDevices { get; }
-    public IAudioRenderDevice CreateRenderDevice(string deviceId, AudioFormat format) => new MmAudioRenderDevice(_enumerator.GetDevice(deviceId),format);
+    public IAudioRenderDevice? CreateRenderDevice(string deviceId, AudioFormat format) => new MmAudioRenderDevice(_enumerator.GetDevice(deviceId),format);
 
     private void RefreshDevices()
     {

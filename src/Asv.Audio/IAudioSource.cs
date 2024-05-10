@@ -35,9 +35,9 @@ public class AudioFormat
 public interface IAudioSource
 {
     IObservable<IChangeSet<IAudioDeviceInfo,string>> CaptureDevices { get; }
-    IAudioCaptureDevice CreateCaptureDevice(string deviceId, AudioFormat format);
+    IAudioCaptureDevice? CreateCaptureDevice(string deviceId, AudioFormat format);
     IObservable<IChangeSet<IAudioDeviceInfo,string>> RenderDevices { get; }
-    IAudioRenderDevice CreateRenderDevice(string deviceId, AudioFormat format);
+    IAudioRenderDevice? CreateRenderDevice(string deviceId, AudioFormat format);
     
     public ImmutableArray<IAudioDeviceInfo> GetAllCaptureDevices()
     {
