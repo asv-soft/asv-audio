@@ -19,11 +19,9 @@ public class AudioFormat
         Channel = channel;
         BytesPerSample = (bits / 8) * Channel;
     }
-
     public int SampleRate { get; }
     public int Bits { get; }
     public int Channel { get; }
-    
     public int BytesPerSample { get; } 
     
     public override string ToString()
