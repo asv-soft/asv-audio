@@ -33,5 +33,9 @@
         <PackageReference Include="NLog" Version="$(NLogVersion)" />
         <PackageReference Include="Asv.Common" Version="$(AsvCommonVersion)" />
         <PackageReference Include="Asv.IO" Version="$(AsvCommonVersion)" />
+        <None Update="README.md">
+            <Pack>true</Pack>
+            <PackagePath>/</PackagePath>
+        </None>
     </ItemGroup>
 </Project>
