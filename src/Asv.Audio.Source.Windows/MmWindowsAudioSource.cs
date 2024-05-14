@@ -1,4 +1,7 @@
-﻿using Asv.Common;
+﻿using System.Reactive;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
+using Asv.Common;
 using DynamicData;
 using NAudio.CoreAudioApi;
 using NAudio.CoreAudioApi.Interfaces;
@@ -15,6 +18,7 @@ public class MmWindowsAudioSource:DisposableOnceWithCancel, IAudioSource, IMMNot
     private readonly SourceCache<IAudioDeviceInfo,string> _playDeviceSource;
     private readonly MMDeviceEnumerator _enumerator;
     private int _refreshIsBusy;
+    private readonly Subject<Unit> _refreshSubject;
 
     public MmWindowsAudioSource()
     {
@@ -24,7 +28,12 @@ public class MmWindowsAudioSource:DisposableOnceWithCancel, IAudioSource, IMMNot
         RenderDevices = _playDeviceSource.Connect().RefCount();
         _enumerator = new MMDeviceEnumerator().DisposeItWith(Disposable);
         _enumerator.RegisterEndpointNotificationCallback(this);
-        RefreshDevices();
+        _refreshSubject = new Subject<Unit>().DisposeItWith(Disposable);
+        _refreshSubject
+            .Throttle(TimeSpan.FromMilliseconds(500))
+            .Subscribe(RefreshDevices)
+            .DisposeItWith(Disposable);
+        RefreshDevices(Unit.Default);
     }
 
     public IObservable<IChangeSet<IAudioDeviceInfo, string>> CaptureDevices { get; } 
@@ -32,7 +41,7 @@ public class MmWindowsAudioSource:DisposableOnceWithCancel, IAudioSource, IMMNot
     public IObservable<IChangeSet<IAudioDeviceInfo, string>> RenderDevices { get; }
     public IAudioRenderDevice? CreateRenderDevice(string deviceId, AudioFormat format) => new MmAudioRenderDevice(_enumerator.GetDevice(deviceId),format);
 
-    private void RefreshDevices()
+    private void RefreshDevices(Unit unit)
     {
         if (Interlocked.CompareExchange(ref _refreshIsBusy,1,0) != 0) return;
         try
@@ -66,31 +75,31 @@ public class MmWindowsAudioSource:DisposableOnceWithCancel, IAudioSource, IMMNot
     public void OnDeviceStateChanged(string deviceId, DeviceState newState)
     {
         Logger.Info("DeviceStateChanged {deviceId} {newState}",deviceId,newState);
-        RefreshDevices();
+        _refreshSubject.OnNext(Unit.Default);
     }
 
     public void OnDeviceAdded(string pwstrDeviceId)
     {
         Logger.Info("DeviceAdded {deviceId}",pwstrDeviceId);
-        RefreshDevices();
+        _refreshSubject.OnNext(Unit.Default);
     }
 
     public void OnDeviceRemoved(string deviceId)
     {
         Logger.Info("DeviceRemoved {deviceId}",deviceId);
-        RefreshDevices();
+        _refreshSubject.OnNext(Unit.Default);
     }
 
     public void OnDefaultDeviceChanged(DataFlow flow, Role role, string defaultDeviceId)
     {
         Logger.Info("DefaultDeviceChanged {flow} {role} {defaultDeviceId}",flow,role,defaultDeviceId);
-        RefreshDevices();
+        _refreshSubject.OnNext(Unit.Default);
     }
 
     public void OnPropertyValueChanged(string pwstrDeviceId, PropertyKey key)
     {
         Logger.Info("PropertyValueChanged {deviceId} {key}",pwstrDeviceId,key);
-        RefreshDevices();
+        _refreshSubject.OnNext(Unit.Default);
     }
     
     #endregion
