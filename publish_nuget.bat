@@ -15,7 +15,7 @@ SET VERSION=%VERSION:v=%
 
 (for %%p in (%projects%) do (
 	cd src\%%p\bin\Release\
-rem	dotnet nuget push %%p.%VERSION%.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json
+	dotnet nuget push %%p.%VERSION%.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json
 	dotnet nuget push %%p.%VERSION%.nupkg --skip-duplicate --source https://nuget.pkg.github.com/asv-soft/index.json
 	cd ../../../../
 )) 
