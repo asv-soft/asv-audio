@@ -2,9 +2,9 @@ namespace Asv.Audio.Codec.Opus;
 
 public static class OpusHelper
 {
-    public static IObservable<ReadOnlyMemory<byte>> OpusEncode(this IObservable<ReadOnlyMemory<byte>> input, AudioFormat pcmFormat, OpusApplication app = OpusApplication.Voip, bool forwardErrorCorrection = false, int segmentFrames = 960, int codecBitrate = 8000, bool useArrayPool = true)
+    public static IObservable<ReadOnlyMemory<byte>> OpusEncode(this IObservable<ReadOnlyMemory<byte>> input, AudioFormat pcmFormat, OpusEncoderSettings? settings = null, bool useArrayPool = true)
     {
-        return new OpusEncoder(input, pcmFormat, app, forwardErrorCorrection, segmentFrames, codecBitrate, useArrayPool);
+        return new OpusEncoder(input, pcmFormat,settings , useArrayPool:useArrayPool);
     }
     
     public static IObservable<ReadOnlyMemory<byte>> OpusDecode(this IObservable<ReadOnlyMemory<byte>> input, AudioFormat pcmFormat, OpusApplication app = OpusApplication.Voip, bool forwardErrorCorrection = false, int segmentFrames = 960, int codecBitrate = 8000, bool useArrayPool = true)

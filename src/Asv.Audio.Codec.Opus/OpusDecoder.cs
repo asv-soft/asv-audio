@@ -8,7 +8,7 @@ public class OpusDecoder: DisposableOnceWithCancel, IObservable<ReadOnlyMemory<b
 {
     private readonly int _frameSize;
     private const int OpusBitrate = 16;
-    private const int MaxDecodedSize = 8000;
+    private const int MaxDecodedSize = 48_000;
     private readonly Subject<ReadOnlyMemory<byte>> _outputSubject;
     private readonly byte[] _outBuffer;
     private readonly Memory<byte> _outMemory;

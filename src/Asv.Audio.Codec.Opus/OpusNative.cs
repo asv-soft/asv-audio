@@ -76,6 +76,71 @@ public enum OpusCtl : int
         OpusGetInDtxRequest              		= 4049,
     }
 
+public enum OpusSignal
+{
+    /// <summary>
+    /// Auto-detect the signal type (default)
+    /// </summary>
+    Auto = -1000,
+
+    /// <summary>
+    /// Optimize for voice signals
+    /// </summary>
+    Voice = 3001,
+
+    /// <summary>
+    /// Optimize for music signals
+    /// </summary>
+    Music = 3002
+}
+
+public enum OpusForceChannels
+{
+    /// <summary>
+    /// Автоматический выбор количества каналов (по умолчанию)
+    /// </summary>
+    Auto = -1000,  // Значение OPUS_AUTO в Opus SDK
+
+    /// <summary>
+    /// Принудительное кодирование в моно
+    /// </summary>
+    Mono = 1,
+
+    /// <summary>
+    /// Принудительное кодирование в стерео
+    /// </summary>
+    Stereo = 2
+}
+
+
+public enum OpusBandwidth
+{
+    /// <summary>
+    /// 4 kHz bandwidth (Narrowband)
+    /// </summary>
+    Narrowband = 1101,
+
+    /// <summary>
+    /// 6 kHz bandwidth (Mediumband)
+    /// </summary>
+    Mediumband = 1102,
+
+    /// <summary>
+    /// 8 kHz bandwidth (Wideband)
+    /// </summary>
+    Wideband = 1103,
+
+    /// <summary>
+    /// 12 kHz bandwidth (Super-Wideband)
+    /// </summary>
+    SuperWideband = 1104,
+
+    /// <summary>
+    /// 20 kHz bandwidth (Fullband)
+    /// </summary>
+    Fullband = 1105
+}
+
     /// <summary>
     /// Supported coding modes.
     /// </summary>
@@ -129,4 +194,48 @@ public enum OpusCtl : int
         /// Memory allocation has failed.
         /// </summary>
         AllocFail       = -7
+    }
+    
+    public enum OpusInbandFecMode
+    {
+        /// <summary>
+        /// Встраиваемая FEC отключена (по умолчанию).
+        /// </summary>
+        Disabled = 0,
+
+        /// <summary>
+        /// Встраиваемая FEC включена. Если уровень потерь пакетов достаточно высок, Opus автоматически переключится на режим SILK даже при высоких битрейтах для использования FEC.
+        /// </summary>
+        EnabledWithSilkSwitch = 1,
+
+        /// <summary>
+        /// Встраиваемая FEC включена, но не обязательно переключается на режим SILK при наличии музыки.
+        /// </summary>
+        EnabledWithoutSilkSwitch = 2
+    }
+    
+    public enum OpusDtxMode
+    {
+        /// <summary>
+        /// DTX отключен (по умолчанию).
+        /// </summary>
+        Disabled = 0,
+
+        /// <summary>
+        /// DTX включен.
+        /// </summary>
+        Enabled = 1
+    }
+    
+    public enum OpusPredictionStatus
+    {
+        /// <summary>
+        /// Предсказание включено (по умолчанию).
+        /// </summary>
+        Enabled = 0,
+
+        /// <summary>
+        /// Предсказание отключено.
+        /// </summary>
+        Disabled = 1
     }
