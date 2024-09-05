@@ -94,7 +94,7 @@ internal class WindowsLoopCommand : Command<WindowsLoopCommand.Settings>
         
         using var loopSub = captureDevice
             .Do(x=>rxCnt += x.Length)
-            .OpusEncode(format, segmentFrames: 2880, codecBitrate:4000)
+            .OpusEncode(format)
             .Do(x=>
             {
                 rxOpus += x.Length;
