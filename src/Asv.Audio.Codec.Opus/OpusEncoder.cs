@@ -136,7 +136,6 @@ public class OpusEncoder: DisposableOnceWithCancel, IObservable<ReadOnlyMemory<b
                 outputHandle.Pointer, MaxEncodedBytes);
         }
         CheckError(length);
-        Console.WriteLine(length);
         _outputSubject.OnNext(new ReadOnlyMemory<byte>(_outBuffer, 0, length));
     }
 
