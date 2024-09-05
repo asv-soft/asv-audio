@@ -7,9 +7,9 @@ public static class OpusHelper
         return new OpusEncoder(input, pcmFormat,settings , useArrayPool:useArrayPool);
     }
     
-    public static IObservable<ReadOnlyMemory<byte>> OpusDecode(this IObservable<ReadOnlyMemory<byte>> input, AudioFormat pcmFormat, OpusApplication app = OpusApplication.Voip, bool forwardErrorCorrection = false, int segmentFrames = 960, int codecBitrate = 8000, bool useArrayPool = true)
+    public static IObservable<ReadOnlyMemory<byte>> OpusDecode(this IObservable<ReadOnlyMemory<byte>> input, AudioFormat pcmFormat, bool useArrayPool = true)
     {
-        return new OpusDecoder(input, pcmFormat, forwardErrorCorrection, useArrayPool);
+        return new OpusDecoder(input, pcmFormat, useArrayPool:useArrayPool);
     }
 
     public static void CheckLibs()

@@ -18,6 +18,7 @@ public class MmAudioRenderDevice : DisposableOnceWithCancel, IAudioRenderDevice
         Format = format;
         _onData = new Subject<Memory<byte>>().DisposeItWith(Disposable);
         _playBuffer = new BufferedWaveProvider(new WaveFormat(format.SampleRate, format.Bits, format.Channel));
+        _playBuffer.DiscardOnBufferOverflow = true;
         _waveOut = new WasapiOut(device,mode, useEventSync, latency).DisposeItWith(Disposable);
         _waveOut.Init(_playBuffer);
     }

@@ -12,11 +12,10 @@ public class OpusDecoder: DisposableOnceWithCancel, IObservable<ReadOnlyMemory<b
     private readonly Subject<ReadOnlyMemory<byte>> _outputSubject;
     private readonly byte[] _outBuffer;
     private readonly Memory<byte> _outMemory;
-    private readonly int _forwardErrorCorrection;
     private readonly IntPtr _decoder;
 
 
-    public OpusDecoder(IObservable<ReadOnlyMemory<byte>> src, AudioFormat pcmFormat, bool forwardErrorCorrection = false, bool useArrayPool = true)
+    public OpusDecoder(IObservable<ReadOnlyMemory<byte>> src, AudioFormat pcmFormat, int frameSize = OpusEncoderSettings.DefaultFrameSize,  bool useArrayPool = true)
     {
         _outputSubject = new Subject<ReadOnlyMemory<byte>>().DisposeItWith(Disposable);
         if (pcmFormat.SampleRate != 8000 &&
@@ -30,15 +29,13 @@ public class OpusDecoder: DisposableOnceWithCancel, IObservable<ReadOnlyMemory<b
         if (pcmFormat.Bits != 16)
             throw new ArgumentOutOfRangeException(nameof(pcmFormat.Bits)); // TODO: check for 8 bits
         
-        _forwardErrorCorrection = forwardErrorCorrection ? 1 : 0;
         _decoder = OpusNative.opus_decoder_create(pcmFormat.SampleRate, pcmFormat.Channel, out var error);
         if ((Errors)error != Errors.OK)
         {
             throw new Exception($"Exception occured while creating opus decoder:{(Errors)error:G}");
         }
        
-        var bytesPerSample = (OpusBitrate / 8) * pcmFormat.Channel;
-        _frameSize = MaxDecodedSize / bytesPerSample;
+        _frameSize = frameSize;
         
         src.Subscribe(Decode).DisposeItWith(Disposable);
         
@@ -57,12 +54,22 @@ public class OpusDecoder: DisposableOnceWithCancel, IObservable<ReadOnlyMemory<b
     private void Decode(ReadOnlyMemory<byte> input)
     {
         if (IsDisposed) return;
-        using var inputHandle = input.Pin();
         using var outputHandle = _outMemory.Pin();
         int length;
-        unsafe
+        if (input.IsEmpty)
         {
-            length = OpusNative.opus_decode(_decoder,inputHandle.Pointer, input.Length, outputHandle.Pointer, _frameSize, _forwardErrorCorrection);
+            unsafe
+            {
+                length = OpusNative.opus_decode(_decoder,null, input.Length, outputHandle.Pointer, _frameSize, 1);    
+            }
+        }
+        else
+        {
+            using var inputHandle = input.Pin();
+            unsafe
+            {
+                length = OpusNative.opus_decode(_decoder,inputHandle.Pointer, input.Length, outputHandle.Pointer, _frameSize, 0);
+            }    
         }
         CheckError(length);
         _outputSubject.OnNext(new ReadOnlyMemory<byte>(_outBuffer, 0, length * 2));
