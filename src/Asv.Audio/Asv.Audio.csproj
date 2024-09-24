@@ -5,7 +5,6 @@
         <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <AssemblyVersion>$(ProductVersion)</AssemblyVersion>
         <FileVersion>$(ProductVersion)</FileVersion>
         <Version>$(ProductVersion)</Version>
         <PackageVersion>$(ProductVersion)</PackageVersion>
