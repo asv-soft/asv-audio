@@ -16,7 +16,7 @@ public class OpusEncoderSettings
     /// <summary>
     /// Использование встроенной коррекции ошибок (FEC).
     /// </summary>
-    public bool ForwardErrorCorrection { get; set; } = false;
+    public bool ForwardErrorCorrection { get; set; } = true;
 
     /// <summary>
     /// Размер кадра (в сэмплах) для кодирования.
