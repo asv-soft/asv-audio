@@ -68,12 +68,12 @@ jobs:
 
       - name: Push package to GitHub
         run: |
-          dotnet nuget push Asv.Audio.${{ env.VERSION }}.nupkg --api-key ${{ env.GH_TOKEN }} --skip-duplicate --source ${{ env.GITHUB_PACKAGES_URL }} --prerelease
-          dotnet nuget push Asv.Audio.Codec.Opus.${{ env.VERSION }}.nupkg --api-key ${{ env.GH_TOKEN }} --skip-duplicate --source ${{ env.GITHUB_PACKAGES_URL }} --prerelease
-          dotnet nuget push Asv.Audio.Source.Windows.${{ env.VERSION }}.nupkg --api-key ${{ env.GH_TOKEN }} --skip-duplicate --source ${{ env.GITHUB_PACKAGES_URL }} --prerelease
+          dotnet nuget push Asv.Audio.${{ env.VERSION }}.nupkg --api-key ${{ env.GH_TOKEN }} --skip-duplicate --source ${{ env.GITHUB_PACKAGES_URL }}
+          dotnet nuget push Asv.Audio.Codec.Opus.${{ env.VERSION }}.nupkg --api-key ${{ env.GH_TOKEN }} --skip-duplicate --source ${{ env.GITHUB_PACKAGES_URL }}
+          dotnet nuget push Asv.Audio.Source.Windows.${{ env.VERSION }}.nupkg --api-key ${{ env.GH_TOKEN }} --skip-duplicate --source ${{ env.GITHUB_PACKAGES_URL }}
 
       - name: Push package to Nuget
         run: |
-          dotnet nuget push Asv.Audio.${{ env.VERSION }}.nupkg --api-key ${{ env.NUGET_TOKEN }} --skip-duplicate --source ${{ env.NUGET_SOURCE_URL }} --prerelease
-          dotnet nuget push Asv.Audio.Codec.Opus.${{ env.VERSION }}.nupkg --api-key ${{ env.NUGET_TOKEN }} --skip-duplicate --source ${{ env.NUGET_SOURCE_URL }} --prerelease
-          dotnet nuget push Asv.Audio.Source.Windows.${{ env.VERSION }}.nupkg --api-key ${{ env.NUGET_TOKEN }} --skip-duplicate --source ${{ env.NUGET_SOURCE_URL }} --prerelease
+          dotnet nuget push Asv.Audio.${{ env.VERSION }}.nupkg --api-key ${{ env.NUGET_TOKEN }} --skip-duplicate --source ${{ env.NUGET_SOURCE_URL }}
+          dotnet nuget push Asv.Audio.Codec.Opus.${{ env.VERSION }}.nupkg --api-key ${{ env.NUGET_TOKEN }} --skip-duplicate --source ${{ env.NUGET_SOURCE_URL }}
+          dotnet nuget push Asv.Audio.Source.Windows.${{ env.VERSION }}.nupkg --api-key ${{ env.NUGET_TOKEN }} --skip-duplicate --source ${{ env.NUGET_SOURCE_URL }}
