@@ -6,7 +6,7 @@ namespace Asv.Audio.Codec.Opus;
 
 public class OpusEncoderSettings
 {
-    public const int DefaultFrameSize = 960 * 6; // 120 ms
+    public const int DefaultFrameSize = 960*6; // 120 ms
     
     /// <summary>
     /// Приложение, для которого используется кодек Opus (например, VoIP).

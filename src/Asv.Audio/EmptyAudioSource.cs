@@ -21,11 +21,14 @@ public class EmptyAudioSource : DisposableOnceWithCancel, IAudioSource
         } 
     }
 
-    public EmptyAudioSource()
+    public EmptyAudioSource(string id = "empty")
     {
+        Id = id;
         CaptureDevices = new SourceCache<IAudioDeviceInfo, string>(x => x.Id).DisposeItWith(Disposable).Connect().RefCount();
         RenderDevices = new SourceCache<IAudioDeviceInfo, string>(x => x.Id).DisposeItWith(Disposable).Connect().RefCount();
     }
+
+    public string Id { get; }
     public IObservable<IChangeSet<IAudioDeviceInfo, string>> CaptureDevices { get; }
     public IAudioCaptureDevice? CreateCaptureDevice(string deviceId, AudioFormat format)
     {

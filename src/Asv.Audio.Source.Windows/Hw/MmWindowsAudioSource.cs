@@ -11,6 +11,8 @@ namespace Asv.Audio.Source.Windows;
 
 
 
+
+
 public class MmWindowsAudioSource:DisposableOnceWithCancel, IAudioSource, IMMNotificationClient
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
@@ -20,8 +22,9 @@ public class MmWindowsAudioSource:DisposableOnceWithCancel, IAudioSource, IMMNot
     private int _refreshIsBusy;
     private readonly Subject<Unit> _refreshSubject;
 
-    public MmWindowsAudioSource()
+    public MmWindowsAudioSource(string id = "WndMM")
     {
+        Id = id;
         _recordDeviceSource = new SourceCache<IAudioDeviceInfo, string>(x => x.Id).DisposeItWith(Disposable);
         CaptureDevices = _recordDeviceSource.Connect().RefCount();
         _playDeviceSource = new SourceCache<IAudioDeviceInfo, string>(x => x.Id).DisposeItWith(Disposable);
@@ -30,14 +33,19 @@ public class MmWindowsAudioSource:DisposableOnceWithCancel, IAudioSource, IMMNot
         _enumerator.RegisterEndpointNotificationCallback(this);
         _refreshSubject = new Subject<Unit>().DisposeItWith(Disposable);
         _refreshSubject
-            .Throttle(TimeSpan.FromMilliseconds(500))
+            .Throttle(TimeSpan.FromMilliseconds(1000))
             .Subscribe(RefreshDevices)
             .DisposeItWith(Disposable);
         RefreshDevices(Unit.Default);
     }
 
+    public string Id { get; }
     public IObservable<IChangeSet<IAudioDeviceInfo, string>> CaptureDevices { get; } 
-    public IAudioCaptureDevice? CreateCaptureDevice(string deviceId, AudioFormat format) => new MmAudioCaptureDevice(_enumerator.GetDevice(deviceId),format);
+    public IAudioCaptureDevice? CreateCaptureDevice(string deviceId, AudioFormat format)
+    {
+        return new MmAudioCaptureDevice(_enumerator.GetDevice(deviceId), format);
+    }
+
     public IObservable<IChangeSet<IAudioDeviceInfo, string>> RenderDevices { get; }
     public IAudioRenderDevice? CreateRenderDevice(string deviceId, AudioFormat format) => new MmAudioRenderDevice(_enumerator.GetDevice(deviceId),format);
 
@@ -50,13 +58,13 @@ public class MmWindowsAudioSource:DisposableOnceWithCancel, IAudioSource, IMMNot
             {
                 inner.Clear();
                 inner.AddOrUpdate(_enumerator.EnumerateAudioEndPoints(DataFlow.Capture, DeviceState.Active)
-                    .Select(x => new AudioDeviceInfo(x.ID, x.FriendlyName)));
+                    .Select(x => new AudioDeviceInfo(x.ID, x.FriendlyName, this)));
             });
             _playDeviceSource.Edit(inner =>
             {
                 inner.Clear();
                 inner.AddOrUpdate(_enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active)
-                    .Select(x => new AudioDeviceInfo(x.ID, x.FriendlyName)));
+                    .Select(x => new AudioDeviceInfo(x.ID, x.FriendlyName, this)));
             });
         }
         catch (Exception e)
@@ -69,7 +77,9 @@ public class MmWindowsAudioSource:DisposableOnceWithCancel, IAudioSource, IMMNot
         }
         
     }
+
     
+
     #region NotificationClient
     
     public void OnDeviceStateChanged(string deviceId, DeviceState newState)

@@ -7,6 +7,7 @@ namespace Asv.Audio;
 public interface IAudioDeviceInfo
 {
     string Id { get; }
+    IAudioSource Source { get; }
     string Name { get; }
 }
 
@@ -32,6 +33,7 @@ public class AudioFormat
 }
 public interface IAudioSource
 {
+    string Id { get; }
     IObservable<IChangeSet<IAudioDeviceInfo,string>> CaptureDevices { get; }
     IAudioCaptureDevice? CreateCaptureDevice(string deviceId, AudioFormat format);
     IObservable<IChangeSet<IAudioDeviceInfo,string>> RenderDevices { get; }

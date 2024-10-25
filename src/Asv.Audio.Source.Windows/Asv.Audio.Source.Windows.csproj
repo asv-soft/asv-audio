@@ -27,6 +27,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Asv.Audio\Asv.Audio.csproj" />
+        <PackageReference Include="NAudio" Version="2.2.1" />
         <PackageReference Include="NAudio.Wasapi" Version="$(NAudioVersion)" />
         
     </ItemGroup>
