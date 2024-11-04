@@ -11,7 +11,11 @@ public class ChunkingSubject<T> : DisposableOnceWithCancel, IObservable<ReadOnly
     private readonly T[] _notUsedBuffer;
     private int _notUsedBufferSize;
 
-    public ChunkingSubject(IObservable<ReadOnlyMemory<T>> src, int chunkByteSize, bool useArrayPool = true)
+    public ChunkingSubject(
+        IObservable<ReadOnlyMemory<T>> src,
+        int chunkByteSize,
+        bool useArrayPool = true
+    )
     {
         _chunkByteSize = chunkByteSize;
         _onData = new Subject<ReadOnlyMemory<T>>().DisposeItWith(Disposable);
@@ -29,8 +33,11 @@ public class ChunkingSubject<T> : DisposableOnceWithCancel, IObservable<ReadOnly
 
     private void Process(ReadOnlyMemory<T> readOnlyMemory)
     {
-        if (IsDisposed) return;
-        
+        if (IsDisposed)
+        {
+            return;
+        }
+
         if ((readOnlyMemory.Length + _notUsedBufferSize) < _chunkByteSize)
         {
             // not enough data
@@ -38,12 +45,12 @@ public class ChunkingSubject<T> : DisposableOnceWithCancel, IObservable<ReadOnly
             _notUsedBufferSize += readOnlyMemory.Length;
             return;
         }
-        
+
         var bytesToCopy = _chunkByteSize - _notUsedBufferSize;
         readOnlyMemory[..bytesToCopy].CopyTo(_notUsedBuffer.AsMemory(_notUsedBufferSize));
         readOnlyMemory = readOnlyMemory[bytesToCopy..];
-        _onData.OnNext(new ReadOnlyMemory<T>(_notUsedBuffer,0, _chunkByteSize));
-        
+        _onData.OnNext(new ReadOnlyMemory<T>(_notUsedBuffer, 0, _chunkByteSize));
+
         var fullChunks = readOnlyMemory.Length / _chunkByteSize;
         for (var i = 0; i < fullChunks; i++)
         {
@@ -56,10 +63,9 @@ public class ChunkingSubject<T> : DisposableOnceWithCancel, IObservable<ReadOnly
             readOnlyMemory[(fullChunks * _chunkByteSize)..].CopyTo(_notUsedBuffer.AsMemory(0));
         }
     }
-    
+
     public IDisposable Subscribe(IObserver<ReadOnlyMemory<T>> observer)
     {
         return _onData.Subscribe(observer);
     }
 }
-

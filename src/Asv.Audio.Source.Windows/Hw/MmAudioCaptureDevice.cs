@@ -10,7 +10,7 @@ internal class MmAudioCaptureDevice : DisposableOnceWithCancel, IAudioCaptureDev
     private readonly WasapiCapture _waveIn;
     private readonly Subject<ReadOnlyMemory<byte>> _onData;
 
-    public MmAudioCaptureDevice(MMDevice device,AudioFormat format)
+    public MmAudioCaptureDevice(MMDevice device, AudioFormat format)
     {
         Format = format;
         _onData = new Subject<ReadOnlyMemory<byte>>().DisposeItWith(Disposable);
@@ -22,8 +22,12 @@ internal class MmAudioCaptureDevice : DisposableOnceWithCancel, IAudioCaptureDev
 
     private void OnDataAvailable(object? sender, WaveInEventArgs e)
     {
-        if (IsDisposed) return;
-        _onData.OnNext(new ReadOnlyMemory<byte>(e.Buffer,0,e.BytesRecorded));
+        if (IsDisposed)
+        {
+            return;
+        }
+
+        _onData.OnNext(new ReadOnlyMemory<byte>(e.Buffer, 0, e.BytesRecorded));
     }
 
     public void Start()

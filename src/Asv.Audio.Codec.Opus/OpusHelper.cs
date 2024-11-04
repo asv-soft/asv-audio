@@ -2,14 +2,23 @@ namespace Asv.Audio.Codec.Opus;
 
 public static class OpusHelper
 {
-    public static IObservable<ReadOnlyMemory<byte>> OpusEncode(this IObservable<ReadOnlyMemory<byte>> input, AudioFormat pcmFormat, OpusEncoderSettings? settings = null, bool useArrayPool = true)
+    public static IObservable<ReadOnlyMemory<byte>> OpusEncode(
+        this IObservable<ReadOnlyMemory<byte>> input,
+        AudioFormat pcmFormat,
+        OpusEncoderSettings? settings = null,
+        bool useArrayPool = true
+    )
     {
-        return new OpusEncoder(input, pcmFormat,settings , useArrayPool:useArrayPool);
+        return new OpusEncoder(input, pcmFormat, settings, useArrayPool: useArrayPool);
     }
-    
-    public static IObservable<ReadOnlyMemory<byte>> OpusDecode(this IObservable<ReadOnlyMemory<byte>> input, AudioFormat pcmFormat, bool useArrayPool = true)
+
+    public static IObservable<ReadOnlyMemory<byte>> OpusDecode(
+        this IObservable<ReadOnlyMemory<byte>> input,
+        AudioFormat pcmFormat,
+        bool useArrayPool = true
+    )
     {
-        return new OpusDecoder(input, pcmFormat, useArrayPool:useArrayPool);
+        return new OpusDecoder(input, pcmFormat, useArrayPool: useArrayPool);
     }
 
     public static void CheckLibs()
@@ -35,8 +44,10 @@ public static class OpusHelper
     {
 #if DEBUG
         File.Delete(path);
-#endif        
-        if (!File.Exists(path)) File.WriteAllBytes(path, data);
+#endif
+        if (!File.Exists(path))
+        {
+            File.WriteAllBytes(path, data);
+        }
     }
-  
 }

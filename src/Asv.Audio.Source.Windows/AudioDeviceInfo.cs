@@ -1,6 +1,7 @@
 namespace Asv.Audio.Source.Windows;
 
-internal class AudioDeviceInfo(string id, string friendlyName, IAudioSource source) : IAudioDeviceInfo
+internal class AudioDeviceInfo(string id, string friendlyName, IAudioSource source)
+    : IAudioDeviceInfo
 {
     public string Id { get; } = id;
     public IAudioSource Source { get; } = source;

@@ -16,7 +16,9 @@ public class MemoryCaptureDevice : DisposableOnceWithCancel, IAudioCaptureDevice
         Format = format;
         _dataSubject = new Subject<ReadOnlyMemory<byte>>().DisposeItWith(Disposable);
     }
+
     public AudioFormat Format { get; }
+
     public void Start()
     {
         var original = _data;
@@ -26,6 +28,7 @@ public class MemoryCaptureDevice : DisposableOnceWithCancel, IAudioCaptureDevice
             {
                 throw new Exception("Not enough data");
             }
+
             _dataSubject.OnNext(original[..chunk]);
             original = original[chunk..];
         }
