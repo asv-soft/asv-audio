@@ -9,9 +9,8 @@ namespace Asv.Audio.Shell;
 
 class Program
 {
-    
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-    
+
     static int Main(string[] args)
     {
         HandleExceptions();
@@ -21,11 +20,11 @@ class Program
             Console.InputEncoding = Encoding.UTF8;
             Console.OutputEncoding = Encoding.UTF8;
             var app = new CommandApp();
-            
+
             app.Configure(config =>
             {
                 config.AddCommand<WindowsLoopCommand>(WindowsLoopCommand.Name);
-                
+
 #if DEBUG
                 config.PropagateExceptions();
                 config.ValidateExamples();
@@ -40,21 +39,22 @@ class Program
             return -99;
         }
     }
-    
+
     private static void HandleExceptions()
     {
+        TaskScheduler.UnobservedTaskException += (sender, args) =>
+        {
+            Logger.Fatal(
+                args.Exception,
+                $"Task scheduler unobserver task exception from '{sender}': {args.Exception.Message}"
+            );
+        };
 
-        TaskScheduler.UnobservedTaskException +=
-            (sender, args) =>
-            {
-                Logger.Fatal(args.Exception,
-                    $"Task scheduler unobserver task exception from '{sender}': {args.Exception.Message}");
-            };
-
-        AppDomain.CurrentDomain.UnhandledException +=
-            (sender, eventArgs) =>
-            {
-                Logger.Fatal($"Unhandled AppDomain exception. Sender '{sender}'. Args: {eventArgs.ExceptionObject}");
-            };
+        AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
+        {
+            Logger.Fatal(
+                $"Unhandled AppDomain exception. Sender '{sender}'. Args: {eventArgs.ExceptionObject}"
+            );
+        };
     }
 }

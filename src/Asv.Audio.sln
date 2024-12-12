@@ -18,7 +18,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		..\publish_nuget.bat = ..\publish_nuget.bat
 		..\.github\workflows\release-action.yml = ..\.github\workflows\release-action.yml
 		..\.github\workflows\release-debug-version.yml = ..\.github\workflows\release-debug-version.yml
-		..\.github\workflows\release-pre-version.yml = ..\.github\workflows\release-pre-version.yml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asv.Audio.Test", "Asv.Audio.Test\Asv.Audio.Test.csproj", "{CBF63B8C-D827-42D5-8895-AA7F5A7B121A}"

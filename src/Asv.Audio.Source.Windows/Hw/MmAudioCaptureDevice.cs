@@ -7,8 +7,6 @@ namespace Asv.Audio.Source.Windows;
 
 internal class MmAudioCaptureDevice : AsyncDisposableWithCancel, IAudioCaptureDevice
 {
-    
-
     private readonly WasapiCapture _waveIn;
     private readonly Subject<ReadOnlyMemory<byte>> _onData = new();
     private readonly IDisposable _sub1;
@@ -66,9 +64,13 @@ internal class MmAudioCaptureDevice : AsyncDisposableWithCancel, IAudioCaptureDe
         static async ValueTask CastAndDispose(IDisposable resource)
         {
             if (resource is IAsyncDisposable resourceAsyncDisposable)
+            {
                 await resourceAsyncDisposable.DisposeAsync();
+            }
             else
+            {
                 resource.Dispose();
+            }
         }
     }
 

@@ -30,7 +30,11 @@ public class CallbackSubject : AsyncDisposableWithCancel, IAudioOutput
         if (disposing)
         {
             _onData.Dispose();
-            if (_disposeInput) _src.Dispose();
+            if (_disposeInput)
+            {
+                _src.Dispose();
+            }
+            
             _sub1.Dispose();
         }
 
@@ -40,7 +44,11 @@ public class CallbackSubject : AsyncDisposableWithCancel, IAudioOutput
     protected override async ValueTask DisposeAsyncCore()
     {
         await CastAndDispose(_onData);
-        if (_disposeInput) await _src.DisposeAsync();
+        if (_disposeInput)
+        {
+            await _src.DisposeAsync();
+        }
+
         await CastAndDispose(_sub1);
 
         await base.DisposeAsyncCore();
@@ -50,9 +58,13 @@ public class CallbackSubject : AsyncDisposableWithCancel, IAudioOutput
         static async ValueTask CastAndDispose(IDisposable resource)
         {
             if (resource is IAsyncDisposable resourceAsyncDisposable)
+            {
                 await resourceAsyncDisposable.DisposeAsync();
+            }
             else
+            {
                 resource.Dispose();
+            }
         }
     }
 

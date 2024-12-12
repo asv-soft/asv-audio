@@ -25,19 +25,20 @@ namespace Asv.Audio.Codec.Opus;
      {
  #if DEBUG
          File.Delete(path);
- #endif        
-         if (!File.Exists(path)) File.WriteAllBytes(path, data);
+ #endif
+         if (!File.Exists(path))
+         {
+             File.WriteAllBytes(path, data);
+         }
      }
-     
+
      public static IAudioOutput OpusEncode(this IAudioOutput input, OpusEncoderSettings? settings = null, bool useArrayPool = true, bool disposeInput = true)
      {
          return new OpusEncoder(input, settings, useArrayPool, disposeInput);
      }
-    
-     
+
      public static IAudioOutput OpusDecode(this IAudioOutput input, bool useArrayPool = true, bool disposeInput = true)
      {
-         return new OpusDecoder(input, useArrayPool:useArrayPool, disposeInput:disposeInput);
+         return new OpusDecoder(input, useArrayPool: useArrayPool, disposeInput: disposeInput);
      }
-   
- }
+}

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Asv.Audio.Shell": {
+      "commandName": "Project",
+      "commandLineArgs": "win-loop"
+    }
+  }
+}

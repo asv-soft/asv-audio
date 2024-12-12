@@ -6,6 +6,25 @@
         <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <CodeAnalysisRuleSet>../CodeStyle.ruleset</CodeAnalysisRuleSet>
+        <WarningsAsErrors>
+            CS0169,
+            CS0618,
+            CS1502,
+            CS1503,
+            CS8524,
+            CS8600,
+            CS8601,
+            CS8602,
+            CS8603,
+            CS8604,
+            CS8625,
+            CS8629,
+            CS8762,
+            CA1510,
+            CA1851
+        </WarningsAsErrors>
+
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -13,10 +32,18 @@
     </PropertyGroup>
 
     <ItemGroup>
+       <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+         <PrivateAssets>all</PrivateAssets>
+         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+       </PackageReference>
        <ProjectReference Include="..\Asv.Audio.Codec.Opus\Asv.Audio.Codec.Opus.csproj" />
        <ProjectReference Include="..\Asv.Audio.Source.Windows\Asv.Audio.Source.Windows.csproj" />
        <ProjectReference Include="..\Asv.Audio\Asv.Audio.csproj" />
        <PackageReference Include="NLog" Version="5.2.8" />
+       <PackageReference Include="Roslynator.Analyzers" Version="4.12.9">
+         <PrivateAssets>all</PrivateAssets>
+         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+       </PackageReference>
        <PackageReference Include="Spectre.Console" Version="0.46.0" />
        <PackageReference Include="Spectre.Console.Cli" Version="0.46.0" />
     </ItemGroup>
