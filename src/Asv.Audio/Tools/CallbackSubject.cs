@@ -5,8 +5,6 @@ namespace Asv.Audio;
 
 public class CallbackSubject : AsyncDisposableWithCancel, IAudioOutput
 {
-    
-
     private readonly Subject<ReadOnlyMemory<byte>> _onData = new();
     private readonly IAudioOutput _src;
     private readonly bool _disposeInput;
