@@ -4,6 +4,10 @@ namespace Asv.Audio.Codec.Opus;
 
 public static class OpusNative
 {
+    static OpusNative()
+    {
+        OpusHelper.CheckLibs();
+    }
     
     [DllImport("opus", CallingConvention = CallingConvention.Cdecl)]
     internal static extern IntPtr opus_encoder_create(int Fs, int channels, int application, out IntPtr error);
