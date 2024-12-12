@@ -1,34 +1,31 @@
-using System.Reactive.Subjects;
 using Asv.Common;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
+using R3;
 
 namespace Asv.Audio.Source.Windows;
 
-internal class MmAudioCaptureDevice : DisposableOnceWithCancel, IAudioCaptureDevice
+internal class MmAudioCaptureDevice : AsyncDisposableWithCancel, IAudioCaptureDevice
 {
-    private readonly WasapiCapture _waveIn;
-    private readonly Subject<ReadOnlyMemory<byte>> _onData;
+    
 
-    public MmAudioCaptureDevice(MMDevice device, AudioFormat format)
+    private readonly WasapiCapture _waveIn;
+    private readonly Subject<ReadOnlyMemory<byte>> _onData = new();
+    private readonly IDisposable _sub1;
+
+    public MmAudioCaptureDevice(MMDevice device,AudioFormat format)
     {
         Format = format;
-        _onData = new Subject<ReadOnlyMemory<byte>>().DisposeItWith(Disposable);
-        _waveIn = new WasapiCapture(device).DisposeItWith(Disposable);
+        _waveIn = new WasapiCapture(device);
         _waveIn.WaveFormat = new WaveFormat(format.SampleRate, format.Bits, format.Channel);
-        _waveIn.DataAvailable += OnDataAvailable;
-        Disposable.AddAction(() => _waveIn.DataAvailable -= OnDataAvailable);
+        _sub1 = Observable.FromEventHandler<WaveInEventArgs>(
+                h => _waveIn.DataAvailable += h, 
+                h => _waveIn.DataAvailable -= h)
+            .Select(args=>new ReadOnlyMemory<byte>(args.e.Buffer,0,args.e.BytesRecorded))
+            .Subscribe(_onData.AsObserver());
     }
 
-    private void OnDataAvailable(object? sender, WaveInEventArgs e)
-    {
-        if (IsDisposed)
-        {
-            return;
-        }
-
-        _onData.OnNext(new ReadOnlyMemory<byte>(e.Buffer, 0, e.BytesRecorded));
-    }
+    public Observable<ReadOnlyMemory<byte>> Output => _onData;
 
     public void Start()
     {
@@ -40,10 +37,40 @@ internal class MmAudioCaptureDevice : DisposableOnceWithCancel, IAudioCaptureDev
         _waveIn.StopRecording();
     }
 
-    public IDisposable Subscribe(IObserver<ReadOnlyMemory<byte>> observer)
+    public AudioFormat Format { get; }
+
+    #region Dispose
+
+    protected override void Dispose(bool disposing)
     {
-        return _onData.Subscribe(observer);
+        if (disposing)
+        {
+            _waveIn.Dispose();
+            _onData.Dispose();
+            _sub1.Dispose();
+        }
+
+        base.Dispose(disposing);
     }
 
-    public AudioFormat Format { get; }
+    protected override async ValueTask DisposeAsyncCore()
+    {
+        await CastAndDispose(_waveIn);
+        await CastAndDispose(_onData);
+        await CastAndDispose(_sub1);
+
+        await base.DisposeAsyncCore();
+
+        return;
+
+        static async ValueTask CastAndDispose(IDisposable resource)
+        {
+            if (resource is IAsyncDisposable resourceAsyncDisposable)
+                await resourceAsyncDisposable.DisposeAsync();
+            else
+                resource.Dispose();
+        }
+    }
+
+    #endregion
 }
