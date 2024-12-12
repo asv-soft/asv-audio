@@ -37,4 +37,8 @@
             <PackagePath>/</PackagePath>
         </None>
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Capture\" />
+      <Folder Include="Codec\" />
+    </ItemGroup>
 </Project>

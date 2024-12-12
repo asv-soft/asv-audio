@@ -1,4 +1,5 @@
 ﻿using System.Reactive.Linq;
+using R3;
 using Xunit;
 
 namespace Asv.Audio.Test;
@@ -18,7 +19,7 @@ public class ChunkingTest
         
         var device = new MemoryCaptureDevice(data,chunks, new AudioFormat(48000,16,1));
         var cnt = 0;
-        device.Chunking(size).Subscribe(x =>
+        device.Chunking(size).Output.Subscribe(x =>
         {
             Assert.Equal(size,x.Length);
             Assert.Equal(data[(cnt * size)..((cnt + 1)*size)].ToArray(),x.ToArray());

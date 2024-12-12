@@ -64,41 +64,50 @@ public class OpusEncoderSettings
     public OpusPredictionStatus Prediction { get; set; } = OpusPredictionStatus.Enabled;
 }
 
-public class OpusEncoder: DisposableOnceWithCancel
+public class OpusEncoder: AsyncDisposableWithCancel, IAudioOutput
 {
+    
+
+    private readonly IAudioOutput _input;
+    private readonly bool _disposeInput;
     private readonly int _frameSize;
     private readonly IntPtr _encoder;
     private const int OpusBitrate = 16;
     private const int MaxEncodedBytes = 48_000;
-    private readonly Subject<ReadOnlyMemory<byte>> _outputSubject;
+    private readonly Subject<ReadOnlyMemory<byte>> _outputSubject = new();
     private readonly byte[] _outBuffer;
     private readonly Memory<byte> _outMemory;
+    private readonly ChunkingSubject _chunking;
+    private readonly IDisposable _sub1;
+    private readonly IDisposable? _sub2;
 
 
-    public Observable<ReadOnlyMemory<byte>> OnEncode => _outputSubject;
+    public AudioFormat Format => _input.Format;
+    public Observable<ReadOnlyMemory<byte>> Output => _outputSubject;
     
     /// <summary>
     /// Represents an Opus encoder that encodes audio data into Opus format.
     /// </summary>
-    public OpusEncoder(Observable<ReadOnlyMemory<byte>> src,
-        AudioFormat pcmFormat,OpusEncoderSettings? settings = null,
-        bool useArrayPool = true)
+    public OpusEncoder(IAudioOutput input, OpusEncoderSettings? settings = null,
+        bool useArrayPool = true, bool disposeInput = true)
     {
+        ArgumentNullException.ThrowIfNull(input);
+        _input = input;
+        _disposeInput = disposeInput;
         settings ??= new OpusEncoderSettings();
         _frameSize = settings.FrameSize;
-        _outputSubject = new Subject<ReadOnlyMemory<byte>>().DisposeItWith(Disposable);
-        if (pcmFormat.SampleRate != 8000 &&
-            pcmFormat.SampleRate != 12000 &&
-            pcmFormat.SampleRate != 16000 &&
-            pcmFormat.SampleRate != 24000 &&
-            pcmFormat.SampleRate != 48000)
-            throw new ArgumentOutOfRangeException(nameof(pcmFormat.SampleRate));
-        if (pcmFormat.Channel != 1 && pcmFormat.Channel != 2)
-            throw new ArgumentOutOfRangeException(nameof(pcmFormat.Channel));
-        if (pcmFormat.Bits != 16)
-            throw new ArgumentOutOfRangeException(nameof(pcmFormat.Bits)); // TODO: check for 8 bits
+        if (input.Format.SampleRate != 8000 &&
+            input.Format.SampleRate != 12000 &&
+            input.Format.SampleRate != 16000 &&
+            input.Format.SampleRate != 24000 &&
+            input.Format.SampleRate != 48000)
+            throw new ArgumentOutOfRangeException(nameof(input.Format.SampleRate));
+        if (input.Format.Channel != 1 && input.Format.Channel != 2)
+            throw new ArgumentOutOfRangeException(nameof(input.Format.Channel));
+        if (input.Format.Bits != 16)
+            throw new ArgumentOutOfRangeException(nameof(input.Format.Bits)); // TODO: check for 8 bits
         
-        _encoder = OpusNative.opus_encoder_create(pcmFormat.SampleRate, pcmFormat.Channel, (int)settings.Application, out var error);
+        _encoder = OpusNative.opus_encoder_create(input.Format.SampleRate, input.Format.Channel, (int)settings.Application, out var error);
         if ((Errors)error != Errors.OK)
         {
             throw new Exception($"Exception occured while creating opus encoder:{(Errors)error:G}");
@@ -113,16 +122,15 @@ public class OpusEncoder: DisposableOnceWithCancel
         CheckError(OpusNative.opus_encoder_ctl(_encoder, OpusCtl.OpusSetDtxRequest, (int)settings.DtxMode));
         CheckError(OpusNative.opus_encoder_ctl(_encoder, OpusCtl.OpusSetPredictionDisabledRequest, (int)settings.Prediction));
         
-        var chunkByteSize = _frameSize * pcmFormat.BytesPerSample;
-
-        var chunking = new ChunkingSubject<byte>(src, chunkByteSize, useArrayPool).DisposeItWith(Disposable);
-        chunking.OnData.Subscribe(Encode).DisposeItWith(Disposable);
+        var chunkByteSize = _frameSize * input.Format.BytesPerSample;
+        _chunking = new ChunkingSubject(input, chunkByteSize, useArrayPool);
+        _sub1 = _chunking.Output.Subscribe(Encode);
         // src.Chunking(chunkByteSize , useArrayPool).Subscribe(Encode).DisposeItWith(Disposable);
         
         if (useArrayPool)
         {
             _outBuffer = ArrayPool<byte>.Shared.Rent(MaxEncodedBytes);
-            Disposable.AddAction(() => ArrayPool<byte>.Shared.Return(_outBuffer));
+            _sub2 = Disposable.Create(() => ArrayPool<byte>.Shared.Return(_outBuffer));
         }
         else
         {
@@ -151,4 +159,43 @@ public class OpusEncoder: DisposableOnceWithCancel
         if (result < 0)
             throw new Exception($"Encoding failed - {(Errors)result:G}" );
     }
+
+    #region Dispose
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            if (_disposeInput) _input.Dispose();
+            _outputSubject.Dispose();
+            _chunking.Dispose();
+            _sub1.Dispose();
+            _sub2?.Dispose();
+        }
+
+        base.Dispose(disposing);
+    }
+
+    protected override async ValueTask DisposeAsyncCore()
+    {
+        if (_disposeInput) await _input.DisposeAsync();
+        await CastAndDispose(_outputSubject);
+        await _chunking.DisposeAsync();
+        await CastAndDispose(_sub1);
+        if (_sub2 != null) await CastAndDispose(_sub2);
+
+        await base.DisposeAsyncCore();
+
+        return;
+
+        static async ValueTask CastAndDispose(IDisposable resource)
+        {
+            if (resource is IAsyncDisposable resourceAsyncDisposable)
+                await resourceAsyncDisposable.DisposeAsync();
+            else
+                resource.Dispose();
+        }
+    }
+
+    #endregion
 }

@@ -5,6 +5,7 @@ using Asv.Audio.Source.Windows;
 using Asv.Common;
 using DynamicData.Binding;
 using NLog;
+using R3;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -33,18 +34,12 @@ internal class WindowsLoopCommand : Command<WindowsLoopCommand.Settings>
                   ?? throw new Exception("Capture device not found");
         using var play = src.CreateFirstRenderDevice(format) 
                          ?? throw new Exception("Render device not found");;
-        // send audio from capture to render (loopback)
-        rec.Subscribe(play);
-        
-        // or encode/decode audio by opus codec
-        rec.OpusEncode(format)
-            // may be some processing here (e.g. send over network)
-            .OpusDecode(format)
-            .Subscribe(play);
-
+        using var a = rec.OpusEncode()
+            .OpusDecode()
+            .Play(play);
     }
 
-    public override int Execute(CommandContext context, Settings settings)
+    public override int Execute(CommandContext? context, Settings settings)
     {
         
         
@@ -91,17 +86,17 @@ internal class WindowsLoopCommand : Command<WindowsLoopCommand.Settings>
         long rxCnt = 0;
         long rxOpus = 0;
         long framesCount = 1;
-        
+    
         using var loopSub = captureDevice
             .Do(x=>rxCnt += x.Length)
-            .OpusEncode(format)
+            .OpusEncode()
             .Do(x=>
             {
                 rxOpus += x.Length;
                 ++framesCount;
             })
-            .OpusDecode(format)
-            .Subscribe(renderDevice);
+            .OpusDecode()
+            .Play(renderDevice);
         renderDevice.Start();
         captureDevice.Start();
 
@@ -114,9 +109,9 @@ internal class WindowsLoopCommand : Command<WindowsLoopCommand.Settings>
                 .Width(60)
                 .Label("[green bold underline]Rates[/]")
                 .CenterLabel()
-                .AddItem("RAW", Math.Ceiling(rxCounter.Calculate(rxCnt)), Color.Yellow)
-                .AddItem("OPUS", Math.Ceiling(rxOpusCounter.Calculate(rxOpus)), Color.Green)
-                .AddItem("AVG SIZE", Math.Ceiling((double)(rxOpus / framesCount)), Color.Green);
+                .AddItem("RAW SIZE", Math.Ceiling(rxCounter.Calculate(rxCnt)), Color.Yellow)
+                .AddItem("AFTER OPUS", Math.Ceiling(rxOpusCounter.Calculate(rxOpus)), Color.Green)
+                .AddItem("AVG MSG SIZE", Math.Ceiling((double)(rxOpus / framesCount)), Color.Green);
             
             AnsiConsole.Write(chart);
             Task.Delay(1000).Wait();

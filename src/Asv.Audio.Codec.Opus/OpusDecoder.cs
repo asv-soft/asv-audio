@@ -4,47 +4,57 @@ using R3;
 
 namespace Asv.Audio.Codec.Opus;
 
-public class OpusDecoder: DisposableOnceWithCancel
+public class OpusDecoder: AsyncDisposableWithCancel, IAudioOutput
 {
+    private readonly IAudioOutput _input;
     private readonly int _frameSize;
+    private readonly bool _disposeInput;
     private const int OpusBitrate = 16;
     private const int MaxDecodedSize = 48_000;
-    private readonly Subject<ReadOnlyMemory<byte>> _outputSubject;
+    private readonly Subject<ReadOnlyMemory<byte>> _outputSubject = new();
     private readonly byte[] _outBuffer;
     private readonly Memory<byte> _outMemory;
     private readonly IntPtr _decoder;
+    private readonly IDisposable _sub1;
+    private readonly IDisposable? _sub2;
 
 
-    public Observable<ReadOnlyMemory<byte>> OnDecode => _outputSubject;
+    public AudioFormat Format => _input.Format;
+    public Observable<ReadOnlyMemory<byte>> Output => _outputSubject;
 
-    public OpusDecoder(Observable<ReadOnlyMemory<byte>> src, AudioFormat pcmFormat, int frameSize = OpusEncoderSettings.DefaultFrameSize,  bool useArrayPool = true)
+    public OpusDecoder(IAudioOutput input, int frameSize = OpusEncoderSettings.DefaultFrameSize,  bool useArrayPool = true, bool disposeInput = true)
     {
-        _outputSubject = new Subject<ReadOnlyMemory<byte>>().DisposeItWith(Disposable);
-        if (pcmFormat.SampleRate != 8000 &&
-            pcmFormat.SampleRate != 12000 &&
-            pcmFormat.SampleRate != 16000 &&
-            pcmFormat.SampleRate != 24000 &&
-            pcmFormat.SampleRate != 48000)
-            throw new ArgumentOutOfRangeException(nameof(pcmFormat.SampleRate));
-        if (pcmFormat.Channel != 1 && pcmFormat.Channel != 2)
-            throw new ArgumentOutOfRangeException(nameof(pcmFormat.Channel));
-        if (pcmFormat.Bits != 16)
-            throw new ArgumentOutOfRangeException(nameof(pcmFormat.Bits)); // TODO: check for 8 bits
+        ArgumentNullException.ThrowIfNull(input);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(frameSize);
         
-        _decoder = OpusNative.opus_decoder_create(pcmFormat.SampleRate, pcmFormat.Channel, out var error);
+        if (input.Format.SampleRate != 8000 &&
+            input.Format.SampleRate != 12000 &&
+            input.Format.SampleRate != 16000 &&
+            input.Format.SampleRate != 24000 &&
+            input.Format.SampleRate != 48000)
+            throw new ArgumentOutOfRangeException(nameof(input.Format.SampleRate));
+        if (input.Format.Channel != 1 && input.Format.Channel != 2)
+            throw new ArgumentOutOfRangeException(nameof(input.Format.Channel));
+        if (input.Format.Bits != 16)
+            throw new ArgumentOutOfRangeException(nameof(input.Format.Bits)); // TODO: check for 8 bits
+        
+
+        _decoder = OpusNative.opus_decoder_create(input.Format.SampleRate, input.Format.Channel, out var error);
         if ((Errors)error != Errors.OK)
         {
             throw new Exception($"Exception occured while creating opus decoder:{(Errors)error:G}");
         }
-       
+
+        _input = input;
         _frameSize = frameSize;
-        
-        src.Subscribe(Decode).DisposeItWith(Disposable);
+        _disposeInput = disposeInput;
+
+        _sub1 = input.Output.Subscribe(Decode);
         
         if (useArrayPool)
         {
             _outBuffer = ArrayPool<byte>.Shared.Rent(MaxDecodedSize);
-            Disposable.AddAction(() => ArrayPool<byte>.Shared.Return(_outBuffer));
+            _sub2 = Disposable.Create(() => ArrayPool<byte>.Shared.Return(_outBuffer));
         }
         else
         {
@@ -82,4 +92,64 @@ public class OpusDecoder: DisposableOnceWithCancel
         if (result < 0)
             throw new Exception($"Decoding failed - {(Errors)result:G}" );
     }
+
+    #region Dispose
+
+    private void ReleaseUnmanagedResources()
+    {
+        if (_decoder != IntPtr.Zero)
+        {
+            OpusNative.opus_decoder_destroy(_decoder);
+        }
+        
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        ReleaseUnmanagedResources();
+        if (disposing)
+        {
+            if (_disposeInput)
+            {
+                _input.Dispose();
+            }
+            _outputSubject.Dispose();
+            _sub1.Dispose();
+            _sub2?.Dispose();
+        }
+
+        base.Dispose(disposing);
+    }
+
+    protected override async ValueTask DisposeAsyncCore()
+    {
+        if (_disposeInput)
+        {
+            await _input.DisposeAsync();
+        }
+        await CastAndDispose(_outputSubject);
+        await CastAndDispose(_sub1);
+        ReleaseUnmanagedResources();
+
+        if (_sub2 != null) await CastAndDispose(_sub2);
+
+        await base.DisposeAsyncCore();
+
+        return;
+
+        static async ValueTask CastAndDispose(IDisposable resource)
+        {
+            if (resource is IAsyncDisposable resourceAsyncDisposable)
+                await resourceAsyncDisposable.DisposeAsync();
+            else
+                resource.Dispose();
+        }
+    }
+
+    ~OpusDecoder()
+    {
+        Dispose(false);
+    }
+
+    #endregion
 }
