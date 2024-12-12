@@ -40,8 +40,11 @@ public class ChunkingSubject : AsyncDisposableWithCancel, IAudioOutput
 
     private void Process(ReadOnlyMemory<byte> readOnlyMemory)
     {
-        if (IsDisposed) return;
-        
+        if (IsDisposed)
+        {
+            return;
+        }
+
         if ((readOnlyMemory.Length + _notUsedBufferSize) < _chunkByteSize)
         {
             // not enough data
@@ -49,12 +52,12 @@ public class ChunkingSubject : AsyncDisposableWithCancel, IAudioOutput
             _notUsedBufferSize += readOnlyMemory.Length;
             return;
         }
-        
+
         var bytesToCopy = _chunkByteSize - _notUsedBufferSize;
         readOnlyMemory[..bytesToCopy].CopyTo(_notUsedBuffer.AsMemory(_notUsedBufferSize));
         readOnlyMemory = readOnlyMemory[bytesToCopy..];
-        _onData.OnNext(new ReadOnlyMemory<byte>(_notUsedBuffer,0, _chunkByteSize));
-        
+        _onData.OnNext(new ReadOnlyMemory<byte>(_notUsedBuffer, 0, _chunkByteSize));
+
         var fullChunks = readOnlyMemory.Length / _chunkByteSize;
         for (var i = 0; i < fullChunks; i++)
         {
@@ -74,7 +77,11 @@ public class ChunkingSubject : AsyncDisposableWithCancel, IAudioOutput
     {
         if (disposing)
         {
-            if (_disposeInput) _src.Dispose();
+            if (_disposeInput)
+            {
+                _src.Dispose();
+            }
+
             _onData.Dispose();
             _sub1.Dispose();
             _sub2?.Dispose();
@@ -85,10 +92,17 @@ public class ChunkingSubject : AsyncDisposableWithCancel, IAudioOutput
 
     protected override async ValueTask DisposeAsyncCore()
     {
-        if (_disposeInput) await _src.DisposeAsync();
+        if (_disposeInput)
+        {
+            await _src.DisposeAsync();
+        }
+
         await CastAndDispose(_onData);
         await CastAndDispose(_sub1);
-        if (_sub2 != null) await CastAndDispose(_sub2);
+        if (_sub2 != null)
+        {
+            await CastAndDispose(_sub2);
+        }
 
         await base.DisposeAsyncCore();
 
@@ -97,12 +111,16 @@ public class ChunkingSubject : AsyncDisposableWithCancel, IAudioOutput
         static async ValueTask CastAndDispose(IDisposable resource)
         {
             if (resource is IAsyncDisposable resourceAsyncDisposable)
+            {
                 await resourceAsyncDisposable.DisposeAsync();
+            }
             else
+            {
                 resource.Dispose();
+            }
         }
     }
 
     #endregion
-    
+
 }

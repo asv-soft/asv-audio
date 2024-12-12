@@ -1,5 +1,4 @@
 using System.Buffers;
-using System.Reactive;
 using Asv.Common;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
@@ -19,15 +18,13 @@ public class MmAudioRenderDevice : AsyncDisposableWithCancel, IAudioRenderDevice
     {
         Format = format;
         _playBuffer = new BufferedWaveProvider(new WaveFormat(format.SampleRate, format.Bits, format.Channel))
-            {
-                DiscardOnBufferOverflow = true
-            };
+        {
+            DiscardOnBufferOverflow = true,
+        };
         _waveOut = new WasapiOut(device,mode, useEventSync, latency);
         _waveOut.Init(_playBuffer);
         _sub1 = _onData.Subscribe(OnNext);
     }
-
-    
 
     public void OnNext(ReadOnlyMemory<byte> value)
     {
@@ -84,9 +81,13 @@ public class MmAudioRenderDevice : AsyncDisposableWithCancel, IAudioRenderDevice
         static async ValueTask CastAndDispose(IDisposable resource)
         {
             if (resource is IAsyncDisposable resourceAsyncDisposable)
+            {
                 await resourceAsyncDisposable.DisposeAsync();
+            }
             else
+            {
                 resource.Dispose();
+            }
         }
     }
 

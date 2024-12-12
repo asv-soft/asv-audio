@@ -20,6 +20,7 @@ public class MemoryCaptureDevice(ReadOnlyMemory<byte> data, int[] chunkSizes, Au
             {
                 throw new Exception("Not enough data");
             }
+            
             _dataSubject.OnNext(original[..chunk]);
             original = original[chunk..];
         }

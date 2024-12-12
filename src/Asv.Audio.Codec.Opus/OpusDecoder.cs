@@ -4,7 +4,7 @@ using R3;
 
 namespace Asv.Audio.Codec.Opus;
 
-public class OpusDecoder: AsyncDisposableWithCancel, IAudioOutput
+public class OpusDecoder : AsyncDisposableWithCancel, IAudioOutput
 {
     private readonly IAudioOutput _input;
     private readonly int _frameSize;
@@ -18,29 +18,35 @@ public class OpusDecoder: AsyncDisposableWithCancel, IAudioOutput
     private readonly IDisposable _sub1;
     private readonly IDisposable? _sub2;
 
-
     public AudioFormat Format => _input.Format;
-    public Observable<ReadOnlyMemory<byte>> Output => _outputSubject;
+    public Observable<ReadOnlyMemory<byte>> Output => this._outputSubject;
 
     public OpusDecoder(IAudioOutput input, int frameSize = OpusEncoderSettings.DefaultFrameSize,  bool useArrayPool = true, bool disposeInput = true)
     {
         ArgumentNullException.ThrowIfNull(input);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(frameSize);
-        
+
         if (input.Format.SampleRate != 8000 &&
             input.Format.SampleRate != 12000 &&
             input.Format.SampleRate != 16000 &&
             input.Format.SampleRate != 24000 &&
             input.Format.SampleRate != 48000)
+        {
             throw new ArgumentOutOfRangeException(nameof(input.Format.SampleRate));
+        }
+
         if (input.Format.Channel != 1 && input.Format.Channel != 2)
+        {
             throw new ArgumentOutOfRangeException(nameof(input.Format.Channel));
-        if (input.Format.Bits != 16)
-            throw new ArgumentOutOfRangeException(nameof(input.Format.Bits)); // TODO: check for 8 bits
-        
+        }
+
+        if (input.Format.Bits != OpusBitrate)
+        {
+            throw new ArgumentOutOfRangeException(nameof(input.Format.Bits));
+        }
 
         _decoder = OpusNative.opus_decoder_create(input.Format.SampleRate, input.Format.Channel, out var error);
-        if ((Errors)error != Errors.OK)
+        if ((Errors)error != Errors.OpusOk)
         {
             throw new Exception($"Exception occured while creating opus decoder:{(Errors)error:G}");
         }
@@ -50,7 +56,7 @@ public class OpusDecoder: AsyncDisposableWithCancel, IAudioOutput
         _disposeInput = disposeInput;
 
         _sub1 = input.Output.Subscribe(Decode);
-        
+
         if (useArrayPool)
         {
             _outBuffer = ArrayPool<byte>.Shared.Rent(MaxDecodedSize);
@@ -60,19 +66,24 @@ public class OpusDecoder: AsyncDisposableWithCancel, IAudioOutput
         {
             _outBuffer = new byte[MaxDecodedSize];
         }
+
         _outMemory = new Memory<byte>(_outBuffer, 0, MaxDecodedSize);
     }
 
     private void Decode(ReadOnlyMemory<byte> input)
     {
-        if (IsDisposed) return;
+        if (IsDisposed)
+        {
+            return;
+        }
+
         using var outputHandle = _outMemory.Pin();
         int length;
         if (input.IsEmpty)
         {
             unsafe
             {
-                length = OpusNative.opus_decode(_decoder,null, input.Length, outputHandle.Pointer, _frameSize, 1);    
+                length = OpusNative.opus_decode(_decoder, null, input.Length, outputHandle.Pointer, _frameSize, 1);    
             }
         }
         else
@@ -80,9 +91,10 @@ public class OpusDecoder: AsyncDisposableWithCancel, IAudioOutput
             using var inputHandle = input.Pin();
             unsafe
             {
-                length = OpusNative.opus_decode(_decoder,inputHandle.Pointer, input.Length, outputHandle.Pointer, _frameSize, 0);
-            }    
+                length = OpusNative.opus_decode(_decoder, inputHandle.Pointer, input.Length, outputHandle.Pointer, _frameSize, 0);
+            }
         }
+
         CheckError(length);
         _outputSubject.OnNext(new ReadOnlyMemory<byte>(_outBuffer, 0, length * 2));
     }
@@ -90,7 +102,9 @@ public class OpusDecoder: AsyncDisposableWithCancel, IAudioOutput
     private void CheckError(int result)
     {
         if (result < 0)
+        {
             throw new Exception($"Decoding failed - {(Errors)result:G}" );
+        }
     }
 
     #region Dispose
@@ -101,7 +115,6 @@ public class OpusDecoder: AsyncDisposableWithCancel, IAudioOutput
         {
             OpusNative.opus_decoder_destroy(_decoder);
         }
-        
     }
 
     protected override void Dispose(bool disposing)
@@ -113,6 +126,7 @@ public class OpusDecoder: AsyncDisposableWithCancel, IAudioOutput
             {
                 _input.Dispose();
             }
+
             _outputSubject.Dispose();
             _sub1.Dispose();
             _sub2?.Dispose();
@@ -127,11 +141,15 @@ public class OpusDecoder: AsyncDisposableWithCancel, IAudioOutput
         {
             await _input.DisposeAsync();
         }
+
         await CastAndDispose(_outputSubject);
         await CastAndDispose(_sub1);
         ReleaseUnmanagedResources();
 
-        if (_sub2 != null) await CastAndDispose(_sub2);
+        if (_sub2 != null)
+        {
+            await CastAndDispose(_sub2);
+        }
 
         await base.DisposeAsyncCore();
 
@@ -140,9 +158,13 @@ public class OpusDecoder: AsyncDisposableWithCancel, IAudioOutput
         static async ValueTask CastAndDispose(IDisposable resource)
         {
             if (resource is IAsyncDisposable resourceAsyncDisposable)
+            {
                 await resourceAsyncDisposable.DisposeAsync();
+            }
             else
+            {
                 resource.Dispose();
+            }
         }
     }
 
