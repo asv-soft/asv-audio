@@ -42,6 +42,8 @@
 
     <ItemGroup>
       
+        <PackageReference Include="R3" Version="1.2.9" />
+      
         <PackageReference Include="System.Reactive" Version="$(ReactiveVersion)" />
         <PackageReference Include="DynamicData" Version="$(DynamicDataVersion)" />
         <PackageReference Include="NLog" Version="$(NLogVersion)" />

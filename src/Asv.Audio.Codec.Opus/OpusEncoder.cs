@@ -1,6 +1,6 @@
 using System.Buffers;
-using System.Reactive.Subjects;
 using Asv.Common;
+using R3;
 
 namespace Asv.Audio.Codec.Opus;
 
@@ -64,7 +64,7 @@ public class OpusEncoderSettings
     public OpusPredictionStatus Prediction { get; set; } = OpusPredictionStatus.Enabled;
 }
 
-public class OpusEncoder: DisposableOnceWithCancel, IObservable<ReadOnlyMemory<byte>>
+public class OpusEncoder: DisposableOnceWithCancel
 {
     private readonly int _frameSize;
     private readonly IntPtr _encoder;
@@ -75,10 +75,12 @@ public class OpusEncoder: DisposableOnceWithCancel, IObservable<ReadOnlyMemory<b
     private readonly Memory<byte> _outMemory;
 
 
+    public Observable<ReadOnlyMemory<byte>> OnEncode => _outputSubject;
+    
     /// <summary>
     /// Represents an Opus encoder that encodes audio data into Opus format.
     /// </summary>
-    public OpusEncoder(IObservable<ReadOnlyMemory<byte>> src,
+    public OpusEncoder(Observable<ReadOnlyMemory<byte>> src,
         AudioFormat pcmFormat,OpusEncoderSettings? settings = null,
         bool useArrayPool = true)
     {
@@ -112,7 +114,10 @@ public class OpusEncoder: DisposableOnceWithCancel, IObservable<ReadOnlyMemory<b
         CheckError(OpusNative.opus_encoder_ctl(_encoder, OpusCtl.OpusSetPredictionDisabledRequest, (int)settings.Prediction));
         
         var chunkByteSize = _frameSize * pcmFormat.BytesPerSample;
-        src.Chunking(chunkByteSize , useArrayPool).Subscribe(Encode).DisposeItWith(Disposable);
+
+        var chunking = new ChunkingSubject<byte>(src, chunkByteSize, useArrayPool).DisposeItWith(Disposable);
+        chunking.OnData.Subscribe(Encode).DisposeItWith(Disposable);
+        // src.Chunking(chunkByteSize , useArrayPool).Subscribe(Encode).DisposeItWith(Disposable);
         
         if (useArrayPool)
         {
@@ -145,10 +150,5 @@ public class OpusEncoder: DisposableOnceWithCancel, IObservable<ReadOnlyMemory<b
     {
         if (result < 0)
             throw new Exception($"Encoding failed - {(Errors)result:G}" );
-    }
-
-    public IDisposable Subscribe(IObserver<ReadOnlyMemory<byte>> observer)
-    {
-        return _outputSubject.Subscribe(observer);
     }
 }

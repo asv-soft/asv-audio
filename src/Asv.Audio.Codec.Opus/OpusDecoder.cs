@@ -1,10 +1,10 @@
 using System.Buffers;
-using System.Reactive.Subjects;
 using Asv.Common;
+using R3;
 
 namespace Asv.Audio.Codec.Opus;
 
-public class OpusDecoder: DisposableOnceWithCancel, IObservable<ReadOnlyMemory<byte>>
+public class OpusDecoder: DisposableOnceWithCancel
 {
     private readonly int _frameSize;
     private const int OpusBitrate = 16;
@@ -15,7 +15,9 @@ public class OpusDecoder: DisposableOnceWithCancel, IObservable<ReadOnlyMemory<b
     private readonly IntPtr _decoder;
 
 
-    public OpusDecoder(IObservable<ReadOnlyMemory<byte>> src, AudioFormat pcmFormat, int frameSize = OpusEncoderSettings.DefaultFrameSize,  bool useArrayPool = true)
+    public Observable<ReadOnlyMemory<byte>> OnDecode => _outputSubject;
+
+    public OpusDecoder(Observable<ReadOnlyMemory<byte>> src, AudioFormat pcmFormat, int frameSize = OpusEncoderSettings.DefaultFrameSize,  bool useArrayPool = true)
     {
         _outputSubject = new Subject<ReadOnlyMemory<byte>>().DisposeItWith(Disposable);
         if (pcmFormat.SampleRate != 8000 &&
@@ -79,10 +81,5 @@ public class OpusDecoder: DisposableOnceWithCancel, IObservable<ReadOnlyMemory<b
     {
         if (result < 0)
             throw new Exception($"Decoding failed - {(Errors)result:G}" );
-    }
-
-    public IDisposable Subscribe(IObserver<ReadOnlyMemory<byte>> observer)
-    {
-        return _outputSubject.Subscribe(observer);
     }
 }
